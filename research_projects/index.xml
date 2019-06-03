@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Projects &amp; Software on Jeremias Knoblauch</title>
+    <link>https://jeremiasknoblauch.github.io/research_projects/</link>
+    <description>Recent content in Projects &amp; Software on Jeremias Knoblauch</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>&amp;copy; 2018</copyright>
+    <lastBuildDate>Sun, 01 Jan 2017 00:00:00 -0500</lastBuildDate>
+    
+	<atom:link href="https://jeremiasknoblauch.github.io/research_projects/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>New horizons for Bayesian inference</title>
+      <link>https://jeremiasknoblauch.github.io/research_projects/new-horizons-for-bayesian-inference/</link>
+      <pubDate>Mon, 08 Apr 2019 00:00:00 -0400</pubDate>
+      
+      <guid>https://jeremiasknoblauch.github.io/research_projects/new-horizons-for-bayesian-inference/</guid>
+      <description>Inspired by Zellner (1988) and Bissiri, Holmes &amp;amp; Walker (2016), this project aims at extending the flexibility and customizeability of Bayesian inference. The first stepping stone on this path is Generalized Variational Inference (GVI) which I coauthored together with Jack Jewson &amp;amp; Theodoros Damoulas. GVI is based on a generalized representation of Bayesian inference that I believe can inspire further methodological advances. Key for this project is going to be a solid information-geometric understanding of Bayesian inference and notions of discrepancy in the space of distributions.</description>
+    </item>
+    
+    <item>
+      <title>Bayesian On-line Changepoint Detection 2.0</title>
+      <link>https://jeremiasknoblauch.github.io/research_projects/advancing-bayesian-on-line-changepoint-detection/</link>
+      <pubDate>Mon, 07 May 2018 00:00:00 -0400</pubDate>
+      
+      <guid>https://jeremiasknoblauch.github.io/research_projects/advancing-bayesian-on-line-changepoint-detection/</guid>
+      <description>Bayesian On-line Changepoint Detection (BOCPD) is a discrete-time inference framework introduced in the statistics and machine learning community independently by Fearnhead &amp;amp; Liu (2007) and Adams &amp;amp; MacKay (2007). Taken together, both papers have generated in excess of 500 citations and inspired more research in this area. The method is popular because it is efficient and runs in constant time per observation processed. Me and my collaborators are working on extending the inference paradigm in several ways:</description>
+    </item>
+    
+    <item>
+      <title>Post Selection Inference in Weakly Stationary Time Series</title>
+      <link>https://jeremiasknoblauch.github.io/research_projects/robust-post-model-selection-inference/</link>
+      <pubDate>Mon, 07 May 2018 00:00:00 -0400</pubDate>
+      
+      <guid>https://jeremiasknoblauch.github.io/research_projects/robust-post-model-selection-inference/</guid>
+      <description>This work is not yet published, but Stephan and I are hoping to resume our work on it soon. If you have a strong interest in this subject, do get in touch with me and I will happily share my thesis work with you.</description>
+    </item>
+    
+  </channel>
+</rss>
