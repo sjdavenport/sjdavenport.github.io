@@ -1,0 +1,344 @@
+<div class="row" id="talk_list">
+        <div class="col-md-2">
+          <h3>2020</h3>
+        </div>
+        <div class="col-md-10">
+
+	<div class="pub-list-item" style="margin-bottom: 1rem" itemscope itemtype="http://schema.org/Event">
+  <i class="fa fa-comment-o pub-icon" aria-hidden="true"></i>
+  <span itemprop="name">Voxelwise Inference Using Convolution Fields</span>
+  <div itemprop="startDate">
+    
+    May 20th, 2020
+      
+      1:30 PM
+    
+  </div>
+  <div class="talk-metadata">
+    
+            Big Data Institute, University of Oxford, UK
+    
+  </div>
+  <div class="talk-links">
+      
+      <a class="btn btn-primary btn-outline btn-xs" href="https://github.com/sjdavenport/RFTtoolbox"
+      target="_blank">
+  Toolbox
+</a>
+
+<a class="btn btn-primary btn-outline btn-xs" href="/talks/Oxford/voxelwise_long.pdf" target="_blank">
+  Slides
+</a>
+  </div>
+</div>
+        
+	<div class="pub-list-item" style="margin-bottom: 1rem" itemscope itemtype="http://schema.org/Event">
+  <i class="fa fa-comment-o pub-icon" aria-hidden="true"></i>
+  <span itemprop="name">Voxelwise Inference Using Convolution Fields (Overview)</span>
+  <div itemprop="startDate">
+    
+    May 7th, 2020
+      
+      3:00 PM
+    
+  </div>
+  <div class="talk-metadata">
+    
+            Department of Statistics, University of Oxford, UK
+    
+  </div>
+  <div class="talk-links">
+      
+      <a class="btn btn-primary btn-outline btn-xs" href="https://github.com/sjdavenport/RFTtoolbox"
+      target="_blank">
+  Toolbox
+</a>
+
+<a class="btn btn-primary btn-outline btn-xs" href="/talks/Oxford/voxelwise_short.pdf" target="_blank">
+  Slides
+</a>
+  </div>
+</div>
+
+  </div>
+      </div>
+
+<div class="row" id="talk_list">
+        <div class="col-md-2">
+          <h3>2019</h3>
+        </div>
+        <div class="col-md-10">
+        
+	<div class="pub-list-item" style="margin-bottom: 1rem" itemscope itemtype="http://schema.org/Event">
+  <i class="fa fa-comment-o pub-icon" aria-hidden="true"></i>
+  <span itemprop="name">Random Field Theory and Cluster Extent Inference</span>
+  <div itemprop="startDate">
+    
+    November 27th, 2019
+      
+      1:30 PM
+    
+  </div>
+  <div class="talk-metadata">
+    
+            Big Data Institute, University of Oxford, UK
+    
+  </div>
+  <div class="talk-links">
+      
+      <a class="btn btn-primary btn-outline btn-xs" href="https://github.com/sjdavenport/RFTtoolbox"
+      target="_blank">
+  Toolbox
+</a>
+
+  </div>
+</div>
+
+
+        <div class="pub-list-item" style="margin-bottom: 1rem" itemscope itemtype="http://schema.org/Event">
+  <i class="fa fa-comment-o pub-icon" aria-hidden="true"></i>
+  <span itemprop="name">Random Field Theory and Cluster Extent Inference</span>
+  <div itemprop="startDate">
+    
+    November 17th, 2019
+      
+      2:30 PM
+    
+  </div>
+  <div class="talk-metadata">
+    
+            Biostatistics Workshop, King Adullah University of Science and Technology, Saudi Arabia
+    
+  </div>
+  <div class="talk-links">
+      
+      <a class="btn btn-primary btn-outline btn-xs" href="https://github.com/sjdavenport/RFTtoolbox"
+      target="_blank">
+  Toolbox
+</a>
+  </div>
+</div>
+
+        <div class="pub-list-item" style="margin-bottom: 1rem" itemscope itemtype="http://schema.org/Event">
+  <i class="fa fa-comment-o pub-icon" aria-hidden="true"></i>
+  <span itemprop="name">Selective peak inference: Unbiased estimation of the effect size at local maxima</span>
+  <div itemprop="startDate">
+    
+    October 11th, 2019
+      
+      2:30 PM
+    
+  </div>
+  <div class="talk-metadata">
+    
+            OxWaSP symposium, University of Warwick, UK
+    
+  </div>
+  <div class="talk-links">
+    
+<a class="btn btn-primary btn-outline btn-xs" href="https://www.biorxiv.org/content/10.1101/500512v3"
+target="_blank">
+  PrePrint
+</a>
+      
+      <a class="btn btn-primary btn-outline btn-xs" href="https://github.com/sjdavenport/SIbootstrap"
+      target="_blank">
+  Code
+</a>
+
+<a class="btn btn-primary btn-outline btn-xs" href="/talks/BDI/spi.pdf" target="_blank">
+  Slides
+</a>
+
+  </div>
+</div>
+
+        <div class="pub-list-item" style="margin-bottom: 1rem" itemscope itemtype="http://schema.org/Event">
+  <i class="fa fa-comment-o pub-icon" aria-hidden="true"></i>
+  <span itemprop="name">Selective peak inference: Unbiased estimation of the effect size at local maxima</span>
+  <div itemprop="startDate">
+    
+    July 16, 2019
+      
+      1:30 PM
+    
+  </div>
+  <div class="talk-metadata">
+    
+            Big Data Institute, University of Oxford, UK
+    
+  </div>
+  <div class="talk-links">
+    
+<a class="btn btn-primary btn-outline btn-xs" href="https://www.biorxiv.org/content/10.1101/500512v3"
+target="_blank">
+  PrePrint
+</a>
+      
+      <a class="btn btn-primary btn-outline btn-xs" href="https://github.com/sjdavenport/SIbootstrap"
+      target="_blank">
+  Code
+</a>
+
+<a class="btn btn-primary btn-outline btn-xs" href="/talks/BDI/spi.pdf" target="_blank">
+  Slides
+</a>
+
+  </div>
+</div>
+
+          
+            
+              <div class="pub-list-item" style="margin-bottom: 1rem" itemscope itemtype="http://schema.org/Event">
+  <i class="fa fa-comment-o pub-icon" aria-hidden="true"></i>
+  <span itemprop="name">Voodoo-corrected effect sizes at local maxima using selective inference</span>
+  <div itemprop="startDate">
+    
+    Jun 11, 2019
+      
+      1:50 PM
+    
+  </div>
+  <div class="talk-metadata">
+    
+            Open Science Room at OHBM in Rome
+    
+  </div>
+  <div class="talk-links">
+    
+<a class="btn btn-primary btn-outline btn-xs" href="https://www.biorxiv.org/content/10.1101/500512v3"
+target="_blank">
+  PrePrint
+</a>
+      
+      <a class="btn btn-primary btn-outline btn-xs" href="https://github.com/sjdavenport/SIbootstrap"
+      target="_blank">
+  Code
+</a>
+
+  </div>
+</div>
+
+            
+              <div class="pub-list-item" style="margin-bottom: 1rem" itemscope itemtype="http://schema.org/Event">
+  <i class="fa fa-comment-o pub-icon" aria-hidden="true"></i>
+  <span itemprop="name">Circular Inference without data splitting</span>
+  <div itemprop="startDate">
+    
+    Jun 12, 2019
+      
+     All day
+    
+  </div>
+  <div class="talk-metadata">
+    
+            OHBM Poster Session
+    
+  </div>
+  <div class="talk-links">
+    
+
+<a class="btn btn-primary btn-outline btn-xs" href="/talks/OHBM/OHBM2019.pdf">
+  Poster
+</a>
+      
+      <a class="btn btn-primary btn-outline btn-xs" href="https://www.biorxiv.org/content/10.1101/500512v3" target="_blank">
+  Preprint
+</a>
+      
+      <a class="btn btn-primary btn-outline btn-xs" href="https://github.com/sjdavenport/SIbootstrap"
+      target="_blank">
+  Code
+</a>
+
+  </div>
+</div>
+
+        </div>
+      </div>
+      
+      <div class="row" id="talk_list">
+        <div class="col-md-2">
+          <h3>2018</h3>
+        </div>
+        <div class="col-md-10">
+
+                        <div class="pub-list-item" style="margin-bottom: 1rem" itemscope itemtype="http://schema.org/Event">
+  <i class="fa fa-comment-o pub-icon" aria-hidden="true"></i>
+  <span itemprop="name">Doughnuts and the Euler Characteristic</span>
+  <div itemprop="startDate">
+    
+    Nov 23, 2018
+    
+      3.00 PM
+    
+  </div>
+  <div class="talk-metadata">
+    
+            Department of Statistics, University of Warwick, UK
+    
+  </div>
+  <div class="talk-links">
+    
+<a class="btn btn-primary btn-outline btn-xs" href="/talks/Warwick/doughnutsandEC.pdf" target="_blank">
+  Slides
+</a>
+
+  </div>
+</div>
+            
+              <div class="pub-list-item" style="margin-bottom: 1rem" itemscope itemtype="http://schema.org/Event">
+  <i class="fa fa-comment-o pub-icon" aria-hidden="true"></i>
+  <span itemprop="name">Testing One Hypothesis Multiple Times</span>
+  <div itemprop="startDate">
+    
+    May 22, 2018
+    
+      1.30 PM
+    
+  </div>
+  <div class="talk-metadata">
+    
+            Big Data Institute, University of Oxford, UK
+    
+  </div>
+  <div class="talk-links">
+    
+<a class="btn btn-primary btn-outline btn-xs" href="/talks/BDI/tohm.pdf" target="_blank">
+  Slides
+</a>
+
+  </div>
+</div>
+
+            
+              <div class="pub-list-item" style="margin-bottom: 1rem" itemscope itemtype="http://schema.org/Event">
+  <i class="fa fa-comment-o pub-icon" aria-hidden="true"></i>
+  <span itemprop="name">Bias in fMRI</span>
+  <div itemprop="startDate">
+    
+    Jan 16, 2018
+    
+      1.30 PM
+    
+  </div>
+  <div class="talk-metadata">
+    
+            Big Data Institute, University of Oxford, UK
+    
+  </div>
+  <div class="talk-links">
+    
+<a class="btn btn-primary btn-outline btn-xs" href="/talks/BDI/siIntro.pdf" target="_blank">
+  Slides
+</a>
+      
+  </div>
+</div>
+
+        </div>
+      </div>
+      
+
+    </div>
+  </div>

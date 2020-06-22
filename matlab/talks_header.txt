@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <meta name="theme" content="hugo-academic">
+  <meta name="generator" content="Hugo 0.36" />
+  <meta name="author" content="Samuel Davenport">
+
+  <meta name="description" content="PhD Student on the Oxford-Warwick Statistics Programme">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://sjdavenport.github.io/talks/">
+
+  <meta name="theme-color" content="#0095eb">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha512-6MXa8B6uaO18Hid6blRMetEIoPqHf7Ux1tnyIQdpt9qI5OACx7C+O3IVTr98vwGnlcg0LOLa02i9Y1HpVhlfiw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.1/css/academicons.min.css" integrity="sha512-NThgw3XKQ1absAahW6to7Ey42uycrVvfNfyjqcFNgCmOCQ5AR4AO0SiXrN+8ZtYeappp56lk1WtvjVmEa+VR6A==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha512-SfTiTlX6kk+qitfevl/7LibUOeJWlt9rbyDn92a1DqWOw9vWG2MFoays0sgObmWazO5BQPiFucnnEAjpAB+/Sw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+  
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Playfair&#43;Display:400,700%7cFauna&#43;One">
+  
+  <link rel="stylesheet" href="/styles.css">
+  
+  <link rel="alternate" href="https://sjdavenport.github.io/talk/index.xml" type="application/rss+xml" title="Samuel Davenport">
+  <link rel="feed" href="https://sjdavenport.github.io/talk/index.xml" type="application/rss+xml" title="Samuel Davenport">
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://sjdavenport.github.io/talk/">
+
+  <meta property="twitter:card" content="summary_large_image">
+  
+  <meta property="og:site_name" content="Samuel Davenport">
+  <meta property="og:url" content="https://sjdavenport.github.io/talk/">
+  <meta property="og:title" content="Talks | Samuel Davenport">
+  <meta property="og:description" content="PhD Student on the Oxford-Warwick Statistics Programme">
+  <meta property="og:locale" content="en-us">
+  
+  <meta property="og:updated_time" content="2017-01-01T00:00:00-05:00">
+  
+  <title>Talks | Samuel Davenport</title>
+
+</head>
+<body id="top" data-spy="scroll" data-target="#toc" data-offset="71" >
+
+<nav class="navbar navbar-default navbar-fixed-top" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="navbar-header">
+      
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target=".navbar-collapse" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+      <a class="navbar-brand" href="/">Samuel Davenport</a>
+    </div>
+
+    
+    <div class="collapse navbar-collapse">
+
+      
+      
+      <ul class="nav navbar-nav navbar-right">
+        <li class="nav-item">
+          <a href="/#about">
+            
+            <span>Home</span>
+            
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="/research/">
+            
+            <span>Research</span>
+            
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="/software/">
+            
+            <span>Software</span>
+            
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="/talks/">
+            
+            <span>Talks</span>
+            
+          </a>
+        </li>
+      </ul>
+
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <h1>Talks</h1>
