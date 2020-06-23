@@ -174,12 +174,15 @@ fid_footer = fopen([matdir,'talks_footer.txt'],'r');
 header_data = textscan(fid_header, '%s', 'Delimiter','\n');
 footer_data = textscan(fid_footer, '%s', 'Delimiter','\n');
 
-% Open talk text file
-fid = fopen([webdir, '/talks/index.html'], 'w');
+fid = fopen([webdir, '/talks/test.html'], 'w');
 addtext(fid, header_data{1})
-addtext(fid, celldocument)
-addtext(fid, footer_data{1})
-fclose all;
+fclose all
+% Open talk text file
+% fid = fopen([webdir, '/talks/index.html'], 'w');
+% addtext(fid, header_data{1})
+% addtext(fid, celldocument)
+% addtext(fid, footer_data{1})
+% fclose all;
 
 % for I = 1:ntalks
 %
