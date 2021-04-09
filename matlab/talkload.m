@@ -59,6 +59,12 @@ for I = 1:ntalks
     elseif ~isempty(strfind(talkdata.Department{I}, 'Stats')) || ~isempty(strfind(talkdata.Department{I}, 'stats'))
         talkdata.Department{I} = 'Department of Statistics';
     end
+    
+    % Add University of where needed
+    if strcmp(talkdata.Uni{I}, 'Oxford') || strcmp(talkdata.Uni{I}, 'Warwick')
+        talkdata.Uni{I} = ['University of ', talkdata.Uni{I}];
+    end
+    
     if button_indicator_table.Slides(I) == 1
         talkdata.Slides{I} = ['/talks/', folder, '/', talkdata.Slides{I}, '.pdf'];
     elseif button_indicator_table.Poster(I) == 1
