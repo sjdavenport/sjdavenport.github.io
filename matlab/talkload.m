@@ -58,6 +58,8 @@ for I = 1:ntalks
         folder = 'OHBM';
     elseif ~isempty(strfind(talkdata.Department{I}, 'Stats')) || ~isempty(strfind(talkdata.Department{I}, 'stats'))
         talkdata.Department{I} = 'Department of Statistics';
+    else
+        folder = 'Oxford';
     end
     
     % Add University of where needed
