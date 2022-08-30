@@ -56,7 +56,7 @@ for I = 1:ntalks
         folder = 'KAUST';
     elseif ~isempty(strfind(talkdata.Department{I}, 'OHBM'))
         folder = 'OHBM';
-    elseif ~isempty(strfind(talkdata.Department{I}, 'Bologna'))
+    elseif ~isempty(strfind(talkdata.Uni{I}, 'Bologna'))
         folder = 'Conferences';
     elseif ~isempty(strfind(talkdata.Department{I}, 'Stats')) || ~isempty(strfind(talkdata.Department{I}, 'stats'))
         talkdata.Department{I} = 'Department of Statistics';
