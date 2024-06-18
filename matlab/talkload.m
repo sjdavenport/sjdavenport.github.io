@@ -79,12 +79,20 @@ for I = 1:ntalks
     
     % Replace the toolboxes with the link to the github
     if button_indicator_table.Toolbox(I)
-        talkdata.Toolbox{I} = ['https://github.com/sjdavenport/', talkdata.Toolbox{I}, '/'];
+        if ~strcmp(talkdata.Toolbox{I}(1:5), 'https')
+            talkdata.Toolbox{I} = ['https://github.com/sjdavenport/', talkdata.Toolbox{I}, '/'];
+        else
+            talkdata.Toolbox{I} = [talkdata.Toolbox{I}];
+        end
     end
     
     % Replace the code links with the link to the github
     if button_indicator_table.Code(I)
-        talkdata.Code{I} = ['https://github.com/sjdavenport/', talkdata.Code{I}, '/'];
+        if ~strcmp(talkdata.Code{I}(1:5), 'https')
+            talkdata.Code{I} = ['https://github.com/sjdavenport/', talkdata.Code{I}, '/'];
+        else
+            talkdata.Code{I} = [talkdata.Code{I}];
+        end
     end
 end
 
