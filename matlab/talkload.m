@@ -1,9 +1,9 @@
 %%%% A function to generate the talk html file
 
 % Assign directory
-global davenpor
-webdir = [davenpor, 'Private_Projects/sjdavenport.github.io/'];
-matdir = [davenpor, 'Private_Projects/sjdavenport.github.io/matlab/'];
+global where_docs
+webdir = [where_docs, 'Other/website/'];
+matdir = [where_docs, 'Other/website/matlab/'];
 
 % Read in table data
 talkdata = readtable([matdir,'talkdata.xlsx']);
