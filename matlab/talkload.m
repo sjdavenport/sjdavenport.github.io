@@ -1,7 +1,8 @@
 %%%% A function to generate the talk html file
 
 % Assign directory
-global where_docs
+% global where_docs
+where_docs = '/Users/sdavenport/Documents/';
 webdir = [where_docs, 'Other/website/'];
 matdir = [where_docs, 'Other/website/matlab/'];
 
