@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hex Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #fff;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        #top-bar {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #game-info {
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .player-indicator {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-block;
+            vertical-align: middle;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .player-indicator.red {
+            background: radial-gradient(circle at 30% 30%, #ff6b6b, #c0392b);
+        }
+
+        .player-indicator.blue {
+            background: radial-gradient(circle at 30% 30%, #74b9ff, #2980b9);
+        }
+
+        #board-container {
+            position: relative;
+            margin: 20px 0;
+        }
+
+        #game-board {
+            position: relative;
+        }
+
+        .hex {
+            cursor: pointer;
+        }
+
+        .hex polygon {
+            fill: #e8e8e8;
+            stroke: #888;
+            stroke-width: 2;
+            transition: fill 0.15s ease, stroke-width 0.15s ease;
+        }
+
+        .hex:hover:not(.occupied) polygon {
+            fill: #c8c8c8;
+            stroke-width: 3;
+        }
+
+        .hex.red polygon {
+            fill: url(#redGradient);
+            stroke: #8b0000;
+        }
+
+        .hex.blue polygon {
+            fill: url(#blueGradient);
+            stroke: #00008b;
+        }
+
+        .hex.occupied {
+            cursor: default;
+        }
+
+        .border-top, .border-bottom {
+            fill: #c0392b !important;
+            stroke: #8b0000 !important;
+        }
+
+        .border-left, .border-right {
+            fill: #2980b9 !important;
+            stroke: #00008b !important;
+        }
+
+        .label {
+            position: absolute;
+            font-weight: bold;
+            font-size: 14px;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+
+        #winner-banner {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            padding: 40px 60px;
+            border-radius: 15px;
+            text-align: center;
+            z-index: 100;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        #winner-banner h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        #winner-banner.red-wins h2 {
+            color: #e74c3c;
+        }
+
+        #winner-banner.blue-wins h2 {
+            color: #3498db;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .rules {
+            max-width: 600px;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .rules h3 {
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 99;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hex</h1>
+    <div id="top-bar">
+        <div id="game-info">
+            <span id="turn-text">Current turn:</span>
+            <span class="player-indicator red" id="current-player"></span>
+            <span id="player-name">Red</span>
+        </div>
+        <button onclick="resetGame()">New Game</button>
+    </div>
+
+    <div id="board-container">
+        <svg id="game-board"></svg>
+    </div>
+
+
+    <div class="overlay" id="overlay"></div>
+    <div id="winner-banner">
+        <h2 id="winner-text"></h2>
+        <button onclick="resetGame()">Play Again</button>
+    </div>
+
+    <div class="rules">
+        <h3>How to Play</h3>
+        <p><strong>Red</strong> tries to connect the <strong>top</strong> edge to the <strong>bottom</strong> edge.</p>
+        <p><strong>Blue</strong> tries to connect the <strong>left</strong> edge to the <strong>right</strong> edge.</p>
+        <p>Players take turns placing one stone on any empty cell. The first player to create an unbroken chain of their stones connecting their two edges wins!</p>
+    </div>
+
+    <svg style="position: absolute; width: 0; height: 0;">
+        <defs>
+            <linearGradient id="redGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#ff6b6b"/>
+                <stop offset="100%" style="stop-color:#c0392b"/>
+            </linearGradient>
+            <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#74b9ff"/>
+                <stop offset="100%" style="stop-color:#2980b9"/>
+            </linearGradient>
+        </defs>
+    </svg>
+
+    <script>
+        const BOARD_SIZE = 11;
+        const HEX_SIZE = 36;
+        const HEX_WIDTH = Math.sqrt(3) * HEX_SIZE;
+        const HEX_HEIGHT = 2 * HEX_SIZE;
+
+        let board = [];
+        let currentPlayer = 'red';
+        let gameOver = false;
+
+        function createHexPoints(cx, cy, size) {
+            const points = [];
+            for (let i = 0; i < 6; i++) {
+                const angle = (Math.PI / 3) * i - Math.PI / 6;
+                const x = cx + size * Math.cos(angle);
+                const y = cy + size * Math.sin(angle);
+                points.push(`${x},${y}`);
+            }
+            return points.join(' ');
+        }
+
+        function getHexCenter(row, col) {
+            const x = 200 + col * HEX_WIDTH + row * HEX_WIDTH * 0.5;
+            const y = 100 + row * HEX_HEIGHT * 0.75;
+            return { x, y };
+        }
+
+        function initBoard() {
+            board = [];
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                board[row] = [];
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    board[row][col] = null;
+                }
+            }
+        }
+
+        function renderBoard() {
+            const svg = document.getElementById('game-board');
+            svg.innerHTML = '';
+
+            const width = 200 + BOARD_SIZE * HEX_WIDTH + BOARD_SIZE * HEX_WIDTH * 0.5 + 200;
+            const height = 100 + BOARD_SIZE * HEX_HEIGHT * 0.75 + 120;
+
+            svg.setAttribute('width', width);
+            svg.setAttribute('height', height);
+            svg.style.width = width + 'px';
+            svg.style.height = height + 'px';
+
+            // Add gradient definitions
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            defs.innerHTML = `
+                <linearGradient id="redGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#ff6b6b"/>
+                    <stop offset="100%" style="stop-color:#c0392b"/>
+                </linearGradient>
+                <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#74b9ff"/>
+                    <stop offset="100%" style="stop-color:#2980b9"/>
+                </linearGradient>
+            `;
+            svg.appendChild(defs);
+
+            // Draw border indicators
+            drawBorders(svg);
+
+            // Draw hexagons
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    const { x, y } = getHexCenter(row, col);
+                    const hex = createHexElement(row, col, x, y);
+                    svg.appendChild(hex);
+                }
+            }
+
+            // Draw labels
+            drawLabels(svg);
+        }
+
+        function drawBorders(svg) {
+            // Top border (red) - positioned at row -1
+            for (let col = 0; col < BOARD_SIZE; col++) {
+                const { x, y } = getHexCenter(-1, col);
+                const border = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                border.setAttribute('points', createHexPoints(x, y, HEX_SIZE));
+                border.setAttribute('fill', '#c0392b');
+                border.setAttribute('stroke', '#8b0000');
+                border.setAttribute('stroke-width', '2');
+                svg.appendChild(border);
+            }
+
+            // Bottom border (red) - positioned at row BOARD_SIZE
+            for (let col = 0; col < BOARD_SIZE; col++) {
+                const { x, y } = getHexCenter(BOARD_SIZE, col);
+                const border = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                border.setAttribute('points', createHexPoints(x, y, HEX_SIZE));
+                border.setAttribute('fill', '#c0392b');
+                border.setAttribute('stroke', '#8b0000');
+                border.setAttribute('stroke-width', '2');
+                svg.appendChild(border);
+            }
+
+            // Left border (blue)
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                const { x, y } = getHexCenter(row, -1);
+                const border = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                border.setAttribute('points', createHexPoints(x, y, HEX_SIZE));
+                border.setAttribute('fill', '#2980b9');
+                border.setAttribute('stroke', '#00008b');
+                border.setAttribute('stroke-width', '2');
+                svg.appendChild(border);
+            }
+
+            // Right border (blue)
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                const { x, y } = getHexCenter(row, BOARD_SIZE);
+                const border = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                border.setAttribute('points', createHexPoints(x, y, HEX_SIZE));
+                border.setAttribute('fill', '#2980b9');
+                border.setAttribute('stroke', '#00008b');
+                border.setAttribute('stroke-width', '2');
+                svg.appendChild(border);
+            }
+
+            // Corner hexagons (half red, half blue)
+            drawCornerHex(svg, -1, -1, 'top-left');      // Top-left corner
+            drawCornerHex(svg, -1, BOARD_SIZE, 'top-right');   // Top-right corner
+            drawCornerHex(svg, BOARD_SIZE, -1, 'bottom-left'); // Bottom-left corner
+            drawCornerHex(svg, BOARD_SIZE, BOARD_SIZE, 'bottom-right'); // Bottom-right corner
+        }
+
+        function drawCornerHex(svg, row, col, position) {
+            const { x, y } = getHexCenter(row, col);
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+            // Get hex vertices
+            // Point 0: upper-right, Point 1: lower-right, Point 2: bottom
+            // Point 3: lower-left, Point 4: upper-left, Point 5: top
+            const points = [];
+            for (let i = 0; i < 6; i++) {
+                const angle = (Math.PI / 3) * i - Math.PI / 6;
+                points.push({
+                    x: x + HEX_SIZE * Math.cos(angle),
+                    y: y + HEX_SIZE * Math.sin(angle)
+                });
+            }
+
+            let redHalf, blueHalf;
+
+            if (position === 'top-left') {
+                // Red connects via right edge (0-1), Blue connects via lower-right edge (1-2)
+                // Split from point 4 to point 1
+                redHalf = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                redHalf.setAttribute('points', `${x},${y} ${points[4].x},${points[4].y} ${points[5].x},${points[5].y} ${points[0].x},${points[0].y} ${points[1].x},${points[1].y}`);
+                blueHalf = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                blueHalf.setAttribute('points', `${x},${y} ${points[1].x},${points[1].y} ${points[2].x},${points[2].y} ${points[3].x},${points[3].y} ${points[4].x},${points[4].y}`);
+            } else if (position === 'top-right') {
+                // Red connects via left edge (3-4), Blue connects via lower-left edge (2-3)
+                // Split from point 0 to point 3
+                redHalf = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                redHalf.setAttribute('points', `${x},${y} ${points[3].x},${points[3].y} ${points[4].x},${points[4].y} ${points[5].x},${points[5].y} ${points[0].x},${points[0].y}`);
+                blueHalf = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                blueHalf.setAttribute('points', `${x},${y} ${points[0].x},${points[0].y} ${points[1].x},${points[1].y} ${points[2].x},${points[2].y} ${points[3].x},${points[3].y}`);
+            } else if (position === 'bottom-left') {
+                // Red connects via right edge (0-1), Blue connects via upper-right edge (5-0)
+                // Split from point 3 to point 0
+                redHalf = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                redHalf.setAttribute('points', `${x},${y} ${points[0].x},${points[0].y} ${points[1].x},${points[1].y} ${points[2].x},${points[2].y} ${points[3].x},${points[3].y}`);
+                blueHalf = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                blueHalf.setAttribute('points', `${x},${y} ${points[3].x},${points[3].y} ${points[4].x},${points[4].y} ${points[5].x},${points[5].y} ${points[0].x},${points[0].y}`);
+            } else if (position === 'bottom-right') {
+                // Red connects via left edge (3-4), Blue connects via upper-left edge (4-5)
+                // Split from point 1 to point 4
+                redHalf = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                redHalf.setAttribute('points', `${x},${y} ${points[1].x},${points[1].y} ${points[2].x},${points[2].y} ${points[3].x},${points[3].y} ${points[4].x},${points[4].y}`);
+                blueHalf = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                blueHalf.setAttribute('points', `${x},${y} ${points[4].x},${points[4].y} ${points[5].x},${points[5].y} ${points[0].x},${points[0].y} ${points[1].x},${points[1].y}`);
+            }
+
+            redHalf.setAttribute('fill', '#c0392b');
+            blueHalf.setAttribute('fill', '#2980b9');
+
+            g.appendChild(redHalf);
+            g.appendChild(blueHalf);
+
+            // Add outline
+            const outline = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            outline.setAttribute('points', createHexPoints(x, y, HEX_SIZE));
+            outline.setAttribute('fill', 'none');
+            outline.setAttribute('stroke', '#333');
+            outline.setAttribute('stroke-width', '2');
+            g.appendChild(outline);
+
+            svg.appendChild(g);
+        }
+
+        function drawLabels(svg) {
+            const letters = 'ABCDEFGHIJK';
+
+            // Top letters (on top border hexagons)
+            for (let col = 0; col < BOARD_SIZE; col++) {
+                const { x, y } = getHexCenter(-1, col);
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', x);
+                label.setAttribute('y', y + 6);
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('fill', '#fff');
+                label.setAttribute('font-weight', 'bold');
+                label.setAttribute('font-size', '14px');
+                label.textContent = letters[col];
+                svg.appendChild(label);
+            }
+
+            // Left numbers (on left border hexagons)
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                const { x, y } = getHexCenter(row, -1);
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', x);
+                label.setAttribute('y', y + 5);
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('fill', '#fff');
+                label.setAttribute('font-weight', 'bold');
+                label.setAttribute('font-size', '14px');
+                label.textContent = row + 1;
+                svg.appendChild(label);
+            }
+
+            // Right numbers (on right border hexagons)
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                const { x, y } = getHexCenter(row, BOARD_SIZE);
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', x);
+                label.setAttribute('y', y + 5);
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('fill', '#fff');
+                label.setAttribute('font-weight', 'bold');
+                label.setAttribute('font-size', '14px');
+                label.textContent = row + 1;
+                svg.appendChild(label);
+            }
+
+            // Bottom letters (on bottom border hexagons)
+            for (let col = 0; col < BOARD_SIZE; col++) {
+                const { x, y } = getHexCenter(BOARD_SIZE, col);
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', x);
+                label.setAttribute('y', y + 6);
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('fill', '#fff');
+                label.setAttribute('font-weight', 'bold');
+                label.setAttribute('font-size', '14px');
+                label.textContent = letters[col];
+                svg.appendChild(label);
+            }
+        }
+
+        function createHexElement(row, col, cx, cy) {
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('class', 'hex');
+            g.setAttribute('data-row', row);
+            g.setAttribute('data-col', col);
+
+            const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            polygon.setAttribute('points', createHexPoints(cx, cy, HEX_SIZE));
+            polygon.setAttribute('fill', '#e8e8e8');
+            polygon.setAttribute('stroke', '#888');
+            polygon.setAttribute('stroke-width', '2');
+
+            g.appendChild(polygon);
+
+            if (board[row][col]) {
+                g.classList.add('occupied');
+                g.classList.add(board[row][col]);
+                polygon.setAttribute('fill', `url(#${board[row][col]}Grad)`);
+                polygon.setAttribute('stroke', board[row][col] === 'red' ? '#8b0000' : '#00008b');
+            }
+
+            g.addEventListener('click', () => handleClick(row, col));
+
+            return g;
+        }
+
+        function handleClick(row, col) {
+            if (gameOver || board[row][col]) return;
+
+            board[row][col] = currentPlayer;
+
+            renderBoard();
+
+            if (checkWin(currentPlayer)) {
+                gameOver = true;
+                showWinner(currentPlayer);
+                return;
+            }
+
+            currentPlayer = currentPlayer === 'red' ? 'blue' : 'red';
+            updateTurnIndicator();
+        }
+
+        function updateTurnIndicator() {
+            const indicator = document.getElementById('current-player');
+            const nameSpan = document.getElementById('player-name');
+
+            indicator.className = `player-indicator ${currentPlayer}`;
+            nameSpan.textContent = currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1);
+        }
+
+        function getNeighbors(row, col) {
+            const neighbors = [];
+            const directions = [
+                [-1, 0], [-1, 1],
+                [0, -1], [0, 1],
+                [1, -1], [1, 0]
+            ];
+
+            for (const [dr, dc] of directions) {
+                const newRow = row + dr;
+                const newCol = col + dc;
+                if (newRow >= 0 && newRow < BOARD_SIZE && newCol >= 0 && newCol < BOARD_SIZE) {
+                    neighbors.push([newRow, newCol]);
+                }
+            }
+            return neighbors;
+        }
+
+        function checkWin(player) {
+            const visited = new Set();
+
+            // For red: check if top connects to bottom
+            // For blue: check if left connects to right
+
+            const startPositions = [];
+            const isEndPosition = (row, col) => {
+                if (player === 'red') {
+                    return row === BOARD_SIZE - 1;
+                } else {
+                    return col === BOARD_SIZE - 1;
+                }
+            };
+
+            // Find starting positions
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                if (player === 'red') {
+                    if (board[0][i] === player) {
+                        startPositions.push([0, i]);
+                    }
+                } else {
+                    if (board[i][0] === player) {
+                        startPositions.push([i, 0]);
+                    }
+                }
+            }
+
+            // BFS from each starting position
+            for (const start of startPositions) {
+                const queue = [start];
+                const localVisited = new Set();
+                localVisited.add(`${start[0]},${start[1]}`);
+
+                while (queue.length > 0) {
+                    const [row, col] = queue.shift();
+
+                    if (isEndPosition(row, col)) {
+                        return true;
+                    }
+
+                    for (const [newRow, newCol] of getNeighbors(row, col)) {
+                        const key = `${newRow},${newCol}`;
+                        if (!localVisited.has(key) && board[newRow][newCol] === player) {
+                            localVisited.add(key);
+                            queue.push([newRow, newCol]);
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        function showWinner(player) {
+            const banner = document.getElementById('winner-banner');
+            const overlay = document.getElementById('overlay');
+            const text = document.getElementById('winner-text');
+
+            banner.className = player === 'red' ? 'red-wins' : 'blue-wins';
+            text.textContent = `${player.charAt(0).toUpperCase() + player.slice(1)} Wins!`;
+
+            banner.style.display = 'block';
+            overlay.classList.add('show');
+        }
+
+        function resetGame() {
+            const banner = document.getElementById('winner-banner');
+            const overlay = document.getElementById('overlay');
+
+            banner.style.display = 'none';
+            overlay.classList.remove('show');
+
+            gameOver = false;
+            currentPlayer = 'red';
+            initBoard();
+            renderBoard();
+            updateTurnIndicator();
+        }
+
+        // Initialize game
+        initBoard();
+        renderBoard();
+        updateTurnIndicator();
+    </script>
+</body>
+</html>
