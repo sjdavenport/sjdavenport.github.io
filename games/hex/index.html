@@ -72,6 +72,11 @@
 
         .hex {
             cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        #game-board {
+            touch-action: manipulation;
         }
 
         .hex polygon {
@@ -198,6 +203,81 @@
         .overlay.show {
             display: block;
         }
+
+        /* Mobile responsive styles */
+        @media (max-width: 900px) {
+            body {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            #top-bar {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            #game-info {
+                font-size: 1.1rem;
+                gap: 10px;
+            }
+
+            .player-indicator {
+                width: 20px;
+                height: 20px;
+            }
+
+            button {
+                padding: 10px 20px;
+                font-size: 1rem;
+            }
+
+            #board-container {
+                width: 100%;
+                overflow-x: auto;
+                overflow-y: hidden;
+                display: flex;
+                justify-content: center;
+                margin: 10px 0;
+            }
+
+            .rules {
+                margin-top: 20px;
+                padding: 15px;
+                font-size: 0.9rem;
+            }
+
+            #winner-banner {
+                padding: 30px 40px;
+                width: 90%;
+                max-width: 300px;
+            }
+
+            #winner-banner h2 {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 500px) {
+            h1 {
+                font-size: 1.6rem;
+            }
+
+            #game-info {
+                font-size: 1rem;
+            }
+
+            #turn-text {
+                display: none;
+            }
+
+            .rules {
+                font-size: 0.85rem;
+                padding: 12px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -244,13 +324,44 @@
 
     <script>
         const BOARD_SIZE = 11;
-        const HEX_SIZE = 36;
-        const HEX_WIDTH = Math.sqrt(3) * HEX_SIZE;
-        const HEX_HEIGHT = 2 * HEX_SIZE;
+
+        // Calculate responsive hex size
+        function calculateHexSize() {
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+
+            // Base size for large screens
+            let size = 36;
+
+            // For smaller screens, calculate size to fit
+            if (screenWidth < 900) {
+                // The board needs approximately: padding + (BOARD_SIZE + 1.5) * HEX_WIDTH
+                // HEX_WIDTH = sqrt(3) * HEX_SIZE
+                // So we solve for HEX_SIZE given available width
+                const availableWidth = screenWidth - 40; // 20px padding on each side
+                const hexWidthMultiplier = Math.sqrt(3);
+                // Total width ≈ 2 * padding + (BOARD_SIZE + BOARD_SIZE * 0.5 + 2) * HEX_WIDTH
+                const numHexWidths = BOARD_SIZE * 1.5 + 3;
+                size = Math.floor(availableWidth / (numHexWidths * hexWidthMultiplier));
+                size = Math.max(16, Math.min(36, size)); // Clamp between 16 and 36
+            }
+
+            return size;
+        }
+
+        let HEX_SIZE = calculateHexSize();
+        let HEX_WIDTH = Math.sqrt(3) * HEX_SIZE;
+        let HEX_HEIGHT = 2 * HEX_SIZE;
 
         let board = [];
         let currentPlayer = 'red';
         let gameOver = false;
+
+        function updateHexDimensions() {
+            HEX_SIZE = calculateHexSize();
+            HEX_WIDTH = Math.sqrt(3) * HEX_SIZE;
+            HEX_HEIGHT = 2 * HEX_SIZE;
+        }
 
         function createHexPoints(cx, cy, size) {
             const points = [];
@@ -264,8 +375,10 @@
         }
 
         function getHexCenter(row, col) {
-            const x = 200 + col * HEX_WIDTH + row * HEX_WIDTH * 0.5;
-            const y = 100 + row * HEX_HEIGHT * 0.75;
+            const padding = Math.max(50, HEX_SIZE * 1.5);
+            // Add HEX_SIZE to y to account for top border hexagons at row -1
+            const x = padding + HEX_WIDTH + col * HEX_WIDTH + row * HEX_WIDTH * 0.5;
+            const y = padding + HEX_SIZE + row * HEX_HEIGHT * 0.75;
             return { x, y };
         }
 
@@ -283,13 +396,16 @@
             const svg = document.getElementById('game-board');
             svg.innerHTML = '';
 
-            const width = 200 + BOARD_SIZE * HEX_WIDTH + BOARD_SIZE * HEX_WIDTH * 0.5 + 200;
-            const height = 100 + BOARD_SIZE * HEX_HEIGHT * 0.75 + 120;
+            const padding = Math.max(50, HEX_SIZE * 1.5);
+            const width = padding + HEX_WIDTH * 2 + BOARD_SIZE * HEX_WIDTH + BOARD_SIZE * HEX_WIDTH * 0.5 + padding;
+            const height = padding + HEX_SIZE + BOARD_SIZE * HEX_HEIGHT * 0.75 + HEX_HEIGHT + padding;
 
             svg.setAttribute('width', width);
             svg.setAttribute('height', height);
-            svg.style.width = width + 'px';
-            svg.style.height = height + 'px';
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            svg.style.width = '100%';
+            svg.style.height = 'auto';
+            svg.style.maxWidth = width + 'px';
 
             // Add gradient definitions
             const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
@@ -440,17 +556,18 @@
 
         function drawLabels(svg) {
             const letters = 'ABCDEFGHIJK';
+            const fontSize = Math.max(10, Math.floor(HEX_SIZE * 0.4)) + 'px';
 
             // Top letters (on top border hexagons)
             for (let col = 0; col < BOARD_SIZE; col++) {
                 const { x, y } = getHexCenter(-1, col);
                 const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                 label.setAttribute('x', x);
-                label.setAttribute('y', y + 6);
+                label.setAttribute('y', y + HEX_SIZE * 0.15);
                 label.setAttribute('text-anchor', 'middle');
                 label.setAttribute('fill', '#fff');
                 label.setAttribute('font-weight', 'bold');
-                label.setAttribute('font-size', '14px');
+                label.setAttribute('font-size', fontSize);
                 label.textContent = letters[col];
                 svg.appendChild(label);
             }
@@ -460,11 +577,11 @@
                 const { x, y } = getHexCenter(row, -1);
                 const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                 label.setAttribute('x', x);
-                label.setAttribute('y', y + 5);
+                label.setAttribute('y', y + HEX_SIZE * 0.15);
                 label.setAttribute('text-anchor', 'middle');
                 label.setAttribute('fill', '#fff');
                 label.setAttribute('font-weight', 'bold');
-                label.setAttribute('font-size', '14px');
+                label.setAttribute('font-size', fontSize);
                 label.textContent = row + 1;
                 svg.appendChild(label);
             }
@@ -474,11 +591,11 @@
                 const { x, y } = getHexCenter(row, BOARD_SIZE);
                 const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                 label.setAttribute('x', x);
-                label.setAttribute('y', y + 5);
+                label.setAttribute('y', y + HEX_SIZE * 0.15);
                 label.setAttribute('text-anchor', 'middle');
                 label.setAttribute('fill', '#fff');
                 label.setAttribute('font-weight', 'bold');
-                label.setAttribute('font-size', '14px');
+                label.setAttribute('font-size', fontSize);
                 label.textContent = row + 1;
                 svg.appendChild(label);
             }
@@ -488,11 +605,11 @@
                 const { x, y } = getHexCenter(BOARD_SIZE, col);
                 const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                 label.setAttribute('x', x);
-                label.setAttribute('y', y + 6);
+                label.setAttribute('y', y + HEX_SIZE * 0.15);
                 label.setAttribute('text-anchor', 'middle');
                 label.setAttribute('fill', '#fff');
                 label.setAttribute('font-weight', 'bold');
-                label.setAttribute('font-size', '14px');
+                label.setAttribute('font-size', fontSize);
                 label.textContent = letters[col];
                 svg.appendChild(label);
             }
@@ -646,6 +763,16 @@
             renderBoard();
             updateTurnIndicator();
         }
+
+        // Handle window resize
+        let resizeTimeout;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(function() {
+                updateHexDimensions();
+                renderBoard();
+            }, 150);
+        });
 
         // Initialize game
         initBoard();
