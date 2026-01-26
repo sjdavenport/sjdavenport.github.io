@@ -157,6 +157,43 @@
             color: #3498db;
         }
 
+        #controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #mode-toggle {
+            display: flex;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .mode-btn {
+            background: transparent;
+            color: rgba(255,255,255,0.6);
+            border: none;
+            padding: 10px 20px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 0;
+            border-radius: 0;
+        }
+
+        .mode-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
         button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -224,6 +261,10 @@
                 gap: 10px;
             }
 
+            #controls {
+                gap: 10px;
+            }
+
             .player-indicator {
                 width: 20px;
                 height: 20px;
@@ -232,6 +273,11 @@
             button {
                 padding: 10px 20px;
                 font-size: 1rem;
+            }
+
+            .mode-btn {
+                padding: 8px 15px;
+                font-size: 0.9rem;
             }
 
             #board-container {
@@ -288,7 +334,13 @@
             <span class="player-indicator red" id="current-player"></span>
             <span id="player-name">Red</span>
         </div>
-        <button onclick="resetGame()">New Game</button>
+        <div id="controls">
+            <div id="mode-toggle">
+                <button id="btn-1p" class="mode-btn" onclick="setMode(1)">1 Player</button>
+                <button id="btn-2p" class="mode-btn active" onclick="setMode(2)">2 Players</button>
+            </div>
+            <button onclick="resetGame()">New Game</button>
+        </div>
     </div>
 
     <div id="board-container">
@@ -306,7 +358,8 @@
         <h3>How to Play</h3>
         <p><strong>Red</strong> tries to connect the <strong>top</strong> edge to the <strong>bottom</strong> edge.</p>
         <p><strong>Blue</strong> tries to connect the <strong>left</strong> edge to the <strong>right</strong> edge.</p>
-        <p>Players take turns placing one stone on any empty cell. The first player to create an unbroken chain of their stones connecting their two edges wins!</p>
+        <p>Players take turns placing one stone on any empty cell. The first player to create an unbroken chain connecting their two edges wins!</p>
+        <p><em>In 1 Player mode, you play as Red against the AI.</em></p>
     </div>
 
     <svg style="position: absolute; width: 0; height: 0;">
@@ -355,6 +408,9 @@
 
         let board = [];
         let currentPlayer = 'red';
+        let gameMode = 2; // 1 = vs AI, 2 = vs human
+        let aiThinking = false;
+        let lastOpponentMove = null;
         let gameOver = false;
 
         function updateHexDimensions() {
@@ -642,11 +698,23 @@
         }
 
         function handleClick(row, col) {
-            if (gameOver || board[row][col]) return;
+            if (gameOver || board[row][col] || aiThinking) return;
 
+            // In 1-player mode, human is always red
+            if (gameMode === 1 && currentPlayer === 'blue') return;
+
+            makeMove(row, col);
+        }
+
+        function makeMove(row, col) {
+            const wasRed = currentPlayer === 'red';
             board[row][col] = currentPlayer;
-
             renderBoard();
+
+            // Track opponent's move for AI bridge defense
+            if (gameMode === 1 && wasRed) {
+                lastOpponentMove = { r: row, c: col };
+            }
 
             if (checkWin(currentPlayer)) {
                 gameOver = true;
@@ -656,6 +724,19 @@
 
             currentPlayer = currentPlayer === 'red' ? 'blue' : 'red';
             updateTurnIndicator();
+
+            // Trigger AI move in 1-player mode
+            if (gameMode === 1 && currentPlayer === 'blue' && !gameOver) {
+                aiThinking = true;
+                updateTurnIndicator();
+                setTimeout(() => {
+                    const aiMove = getAIMove();
+                    aiThinking = false;
+                    if (aiMove) {
+                        makeMove(aiMove.row, aiMove.col);
+                    }
+                }, 300);
+            }
         }
 
         function updateTurnIndicator() {
@@ -663,7 +744,653 @@
             const nameSpan = document.getElementById('player-name');
 
             indicator.className = `player-indicator ${currentPlayer}`;
-            nameSpan.textContent = currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1);
+            let name = currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1);
+            if (gameMode === 1 && currentPlayer === 'blue') {
+                name = aiThinking ? 'AI thinking...' : 'AI';
+            }
+            nameSpan.textContent = name;
+        }
+
+        function setMode(mode) {
+            gameMode = mode;
+            document.getElementById('btn-1p').classList.toggle('active', mode === 1);
+            document.getElementById('btn-2p').classList.toggle('active', mode === 2);
+            resetGame();
+        }
+
+        // ============== AI Implementation ==============
+
+        const directions = [[-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0]];
+
+        // Bridge patterns: dx, dy to partner stone, and the two cells that form the bridge
+        const bridgePatterns = [
+            { dx: -1, dy: 2, bridges: [[-1, 1], [0, 1]] },
+            { dx: 1, dy: 1, bridges: [[0, 1], [1, 0]] },
+            { dx: 2, dy: -1, bridges: [[1, 0], [1, -1]] },
+            { dx: 1, dy: -2, bridges: [[1, -1], [0, -1]] },
+            { dx: -1, dy: -1, bridges: [[0, -1], [-1, 0]] },
+            { dx: -2, dy: 1, bridges: [[-1, 0], [-1, 1]] }
+        ];
+
+        // Find all virtual connections (bridges) for a player
+        // Returns a map of cell -> list of cells it's virtually connected to
+        function findVirtualConnections(player, boardState) {
+            const connections = new Map();
+
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (boardState[r][c] === player) {
+                        for (const pattern of bridgePatterns) {
+                            const pr = r + pattern.dx;
+                            const pc = c + pattern.dy;
+                            if (pr >= 0 && pr < BOARD_SIZE && pc >= 0 && pc < BOARD_SIZE) {
+                                if (boardState[pr][pc] === player) {
+                                    // Check if both bridge cells are empty
+                                    const [b1, b2] = pattern.bridges;
+                                    const b1r = r + b1[0], b1c = c + b1[1];
+                                    const b2r = r + b2[0], b2c = c + b2[1];
+                                    if (b1r >= 0 && b1r < BOARD_SIZE && b1c >= 0 && b1c < BOARD_SIZE &&
+                                        b2r >= 0 && b2r < BOARD_SIZE && b2c >= 0 && b2c < BOARD_SIZE) {
+                                        if (boardState[b1r][b1c] === null && boardState[b2r][b2c] === null) {
+                                            // This is a valid bridge - stones at (r,c) and (pr,pc) are virtually connected
+                                            const key1 = `${r},${c}`;
+                                            const key2 = `${pr},${pc}`;
+                                            if (!connections.has(key1)) connections.set(key1, []);
+                                            if (!connections.has(key2)) connections.set(key2, []);
+                                            connections.get(key1).push({ r: pr, c: pc, bridge: [{ r: b1r, c: b1c }, { r: b2r, c: b2c }] });
+                                            connections.get(key2).push({ r, c, bridge: [{ r: b1r, c: b1c }, { r: b2r, c: b2c }] });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return connections;
+        }
+
+        // Check if a cell is part of a secure bridge for the given player
+        function isSecureBridgeCell(r, c, player, boardState) {
+            for (const pattern of bridgePatterns) {
+                // Check if (r,c) is one of the bridge cells between two player stones
+                for (const [b1, b2] of [[pattern.bridges[0], pattern.bridges[1]]]) {
+                    // For each stone position that could have this as a bridge cell
+                    for (let sr = 0; sr < BOARD_SIZE; sr++) {
+                        for (let sc = 0; sc < BOARD_SIZE; sc++) {
+                            if (boardState[sr][sc] === player) {
+                                const pr = sr + pattern.dx;
+                                const pc = sc + pattern.dy;
+                                if (pr >= 0 && pr < BOARD_SIZE && pc >= 0 && pc < BOARD_SIZE && boardState[pr][pc] === player) {
+                                    const b1r = sr + pattern.bridges[0][0], b1c = sc + pattern.bridges[0][1];
+                                    const b2r = sr + pattern.bridges[1][0], b2c = sc + pattern.bridges[1][1];
+                                    if (((b1r === r && b1c === c) || (b2r === r && b2c === c)) &&
+                                        b1r >= 0 && b1r < BOARD_SIZE && b1c >= 0 && b1c < BOARD_SIZE &&
+                                        b2r >= 0 && b2r < BOARD_SIZE && b2c >= 0 && b2c < BOARD_SIZE &&
+                                        (boardState[b1r][b1c] === null || (b1r === r && b1c === c)) &&
+                                        (boardState[b2r][b2c] === null || (b2r === r && b2c === c))) {
+                                        return { isSecure: true, otherCell: b1r === r && b1c === c ? { r: b2r, c: b2c } : { r: b1r, c: b1c } };
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return { isSecure: false };
+        }
+
+        // Calculate distance treating bridges as virtual connections (cost 0)
+        function calculateDualDistanceWithBridges(player, boardState) {
+            const fromStart = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(Infinity));
+            const fromEnd = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(Infinity));
+
+            // Build adjacency including virtual connections
+            const virtualConns = findVirtualConnections(player, boardState);
+
+            const bfs = (dist, initCells) => {
+                const deque = [...initCells];
+                let head = 0;
+                while (head < deque.length) {
+                    const [row, col] = deque[head++];
+                    const d = dist[row][col];
+
+                    // Regular neighbors
+                    for (const [dr, dc] of directions) {
+                        const nr = row + dr, nc = col + dc;
+                        if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
+                            const cell = boardState[nr][nc];
+                            const cost = cell === player ? 0 : cell === null ? 1 : 1000;
+                            if (d + cost < dist[nr][nc]) {
+                                dist[nr][nc] = d + cost;
+                                if (cost === 0) deque.splice(head, 0, [nr, nc]);
+                                else deque.push([nr, nc]);
+                            }
+                        }
+                    }
+
+                    // Virtual connections (bridges) - treat as cost 0
+                    if (boardState[row][col] === player) {
+                        const key = `${row},${col}`;
+                        const virtuals = virtualConns.get(key) || [];
+                        for (const v of virtuals) {
+                            if (d < dist[v.r][v.c]) {
+                                dist[v.r][v.c] = d;
+                                deque.splice(head, 0, [v.r, v.c]);
+                            }
+                        }
+                    }
+                }
+            };
+
+            const startCells = [], endCells = [];
+            if (player === 'red') {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    const cell = boardState[0][c];
+                    fromStart[0][c] = cell === player ? 0 : cell === null ? 1 : 1000;
+                    startCells.push([0, c]);
+                    const cellEnd = boardState[BOARD_SIZE-1][c];
+                    fromEnd[BOARD_SIZE-1][c] = cellEnd === player ? 0 : cellEnd === null ? 1 : 1000;
+                    endCells.push([BOARD_SIZE-1, c]);
+                }
+            } else {
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    const cell = boardState[r][0];
+                    fromStart[r][0] = cell === player ? 0 : cell === null ? 1 : 1000;
+                    startCells.push([r, 0]);
+                    const cellEnd = boardState[r][BOARD_SIZE-1];
+                    fromEnd[r][BOARD_SIZE-1] = cellEnd === player ? 0 : cellEnd === null ? 1 : 1000;
+                    endCells.push([r, BOARD_SIZE-1]);
+                }
+            }
+
+            bfs(fromStart, startCells);
+            bfs(fromEnd, endCells);
+
+            return { fromStart, fromEnd };
+        }
+
+        // Simple resistance calculation (for quick checks)
+        function calculateDualDistance(player, boardState) {
+            return calculateDualDistanceWithBridges(player, boardState);
+        }
+
+        function calculateResistance(player, boardState) {
+            const { fromStart, fromEnd } = calculateDualDistanceWithBridges(player, boardState);
+            let minDist = Infinity;
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    const cell = boardState[r][c];
+                    const through = fromStart[r][c] + fromEnd[r][c] - (cell === player ? 0 : cell === null ? 1 : 1000);
+                    minDist = Math.min(minDist, through);
+                }
+            }
+            return minDist;
+        }
+
+        // Check if opponent has intruded on one of our bridges (we must respond)
+        function findBridgeIntrusions(player, boardState, lastOpponentMove) {
+            if (!lastOpponentMove) return [];
+            const { r, c } = lastOpponentMove;
+            const intrusions = [];
+
+            // Check if this cell was part of one of our bridges
+            for (let sr = 0; sr < BOARD_SIZE; sr++) {
+                for (let sc = 0; sc < BOARD_SIZE; sc++) {
+                    if (boardState[sr][sc] === player) {
+                        for (const pattern of bridgePatterns) {
+                            const pr = sr + pattern.dx;
+                            const pc = sc + pattern.dy;
+                            if (pr >= 0 && pr < BOARD_SIZE && pc >= 0 && pc < BOARD_SIZE && boardState[pr][pc] === player) {
+                                const b1r = sr + pattern.bridges[0][0], b1c = sc + pattern.bridges[0][1];
+                                const b2r = sr + pattern.bridges[1][0], b2c = sc + pattern.bridges[1][1];
+                                if (b1r >= 0 && b1r < BOARD_SIZE && b1c >= 0 && b1c < BOARD_SIZE &&
+                                    b2r >= 0 && b2r < BOARD_SIZE && b2c >= 0 && b2c < BOARD_SIZE) {
+                                    // Check if opponent played in one of the bridge cells
+                                    if ((b1r === r && b1c === c && boardState[b2r][b2c] === null)) {
+                                        intrusions.push({ r: b2r, c: b2c }); // We should play the other cell
+                                    } else if ((b2r === r && b2c === c && boardState[b1r][b1c] === null)) {
+                                        intrusions.push({ r: b1r, c: b1c });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return intrusions;
+        }
+
+        // Evaluate board with dual distance (considers path quality)
+        function evaluateBoard(boardState) {
+            const blueRes = calculateResistance('blue', boardState);
+            const redRes = calculateResistance('red', boardState);
+
+            if (blueRes === 0) return 100000;
+            if (redRes === 0) return -100000;
+
+            // Count strong positions (cells on shortest path)
+            const blueDual = calculateDualDistance('blue', boardState);
+            const redDual = calculateDualDistance('red', boardState);
+
+            let blueStrong = 0, redStrong = 0;
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (boardState[r][c] === 'blue') {
+                        const pathVal = blueDual.fromStart[r][c] + blueDual.fromEnd[r][c];
+                        if (pathVal <= blueRes + 2) blueStrong++;
+                    } else if (boardState[r][c] === 'red') {
+                        const pathVal = redDual.fromStart[r][c] + redDual.fromEnd[r][c];
+                        if (pathVal <= redRes + 2) redStrong++;
+                    }
+                }
+            }
+
+            return (redRes - blueRes) * 1000 + (blueStrong - redStrong) * 50;
+        }
+
+        // Minimax with alpha-beta pruning
+        function minimax(boardState, depth, alpha, beta, isBlue, lastMove) {
+            const blueRes = calculateResistance('blue', boardState);
+            const redRes = calculateResistance('red', boardState);
+
+            if (blueRes === 0) return 100000 - (3 - depth) * 100;
+            if (redRes === 0) return -100000 + (3 - depth) * 100;
+            if (depth === 0) return evaluateBoard(boardState);
+
+            // Generate and sort moves
+            const moves = [];
+            const currentPlayer = isBlue ? 'blue' : 'red';
+            const dual = calculateDualDistance(currentPlayer, boardState);
+            const res = isBlue ? blueRes : redRes;
+
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (!boardState[r][c]) {
+                        // Prioritize cells on or near the shortest path
+                        const pathDist = dual.fromStart[r][c] + dual.fromEnd[r][c];
+                        const priority = pathDist <= res + 2 ? 1000 - pathDist : 500 - pathDist;
+                        moves.push({ r, c, priority });
+                    }
+                }
+            }
+
+            moves.sort((a, b) => b.priority - a.priority);
+            const topMoves = moves.slice(0, Math.min(10, moves.length));
+
+            if (isBlue) {
+                let maxEval = -Infinity;
+                for (const { r, c } of topMoves) {
+                    boardState[r][c] = 'blue';
+                    const evalScore = minimax(boardState, depth - 1, alpha, beta, false, { r, c });
+                    boardState[r][c] = null;
+                    maxEval = Math.max(maxEval, evalScore);
+                    alpha = Math.max(alpha, evalScore);
+                    if (beta <= alpha) break;
+                }
+                return maxEval;
+            } else {
+                let minEval = Infinity;
+                for (const { r, c } of topMoves) {
+                    boardState[r][c] = 'red';
+                    const evalScore = minimax(boardState, depth - 1, alpha, beta, true, { r, c });
+                    boardState[r][c] = null;
+                    minEval = Math.min(minEval, evalScore);
+                    beta = Math.min(beta, evalScore);
+                    if (beta <= alpha) break;
+                }
+                return minEval;
+            }
+        }
+
+        // Find opponent's bridges that we should consider breaking
+        function findOpponentBridges(opponent, boardState) {
+            const bridges = [];
+            const seen = new Set();
+
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (boardState[r][c] === opponent) {
+                        for (const pattern of bridgePatterns) {
+                            const pr = r + pattern.dx;
+                            const pc = c + pattern.dy;
+                            if (pr >= 0 && pr < BOARD_SIZE && pc >= 0 && pc < BOARD_SIZE) {
+                                if (boardState[pr][pc] === opponent) {
+                                    const [b1, b2] = pattern.bridges;
+                                    const b1r = r + b1[0], b1c = c + b1[1];
+                                    const b2r = r + b2[0], b2c = c + b2[1];
+                                    if (b1r >= 0 && b1r < BOARD_SIZE && b1c >= 0 && b1c < BOARD_SIZE &&
+                                        b2r >= 0 && b2r < BOARD_SIZE && b2c >= 0 && b2c < BOARD_SIZE) {
+                                        if (boardState[b1r][b1c] === null && boardState[b2r][b2c] === null) {
+                                            // Valid bridge found
+                                            const key = [r, c, pr, pc].sort().join(',');
+                                            if (!seen.has(key)) {
+                                                seen.add(key);
+                                                bridges.push({
+                                                    stone1: { r, c },
+                                                    stone2: { r: pr, c: pc },
+                                                    cell1: { r: b1r, c: b1c },
+                                                    cell2: { r: b2r, c: b2c }
+                                                });
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return bridges;
+        }
+
+        // Evaluate how important an opponent's bridge is (based on path relevance)
+        function evaluateBridgeImportance(bridge, opponent, boardState) {
+            const { fromStart, fromEnd } = calculateDualDistanceWithBridges(opponent, boardState);
+            const res = calculateResistance(opponent, boardState);
+
+            // Check if the bridge stones are on or near the shortest path
+            const stone1Dist = fromStart[bridge.stone1.r][bridge.stone1.c] + fromEnd[bridge.stone1.r][bridge.stone1.c];
+            const stone2Dist = fromStart[bridge.stone2.r][bridge.stone2.c] + fromEnd[bridge.stone2.r][bridge.stone2.c];
+
+            const onPath1 = stone1Dist <= res + 1;
+            const onPath2 = stone2Dist <= res + 1;
+
+            if (onPath1 && onPath2) return 3; // Critical bridge on shortest path
+            if (onPath1 || onPath2) return 2; // Important bridge near path
+            return 1; // Less critical bridge
+        }
+
+        // Find critical defensive cells - cells on opponent's shortest path
+        function findCriticalDefensiveCells(player, boardState) {
+            const opponent = player === 'blue' ? 'red' : 'blue';
+            const { fromStart, fromEnd } = calculateDualDistanceWithBridges(opponent, boardState);
+            const oppRes = calculateResistance(opponent, boardState);
+
+            const critical = [];
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (!boardState[r][c]) {
+                        // Check if this cell is on opponent's shortest path
+                        const pathDist = fromStart[r][c] + fromEnd[r][c] - 1; // -1 because cell counted once
+                        if (pathDist <= oppRes) {
+                            // This cell is ON the shortest path - very critical
+                            critical.push({ r, c, urgency: 3 });
+                        } else if (pathDist <= oppRes + 1) {
+                            // This cell is adjacent to shortest path - somewhat critical
+                            critical.push({ r, c, urgency: 2 });
+                        } else if (pathDist <= oppRes + 2) {
+                            critical.push({ r, c, urgency: 1 });
+                        }
+                    }
+                }
+            }
+            return critical;
+        }
+
+        // Evaluate how dangerous it would be if opponent plays a cell
+        function evaluateThreat(r, c, boardState) {
+            const beforeRes = calculateResistance('red', boardState);
+            boardState[r][c] = 'red';
+            const afterRes = calculateResistance('red', boardState);
+            boardState[r][c] = null;
+            return beforeRes - afterRes; // How much closer to winning they'd be
+        }
+
+        // Get AI's move
+        function getAIMove() {
+            const emptyCells = [];
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (!board[r][c]) emptyCells.push({ r, c });
+                }
+            }
+            if (emptyCells.length === 0) return null;
+
+            const center = Math.floor(BOARD_SIZE / 2);
+            const totalCells = BOARD_SIZE * BOARD_SIZE;
+
+            // Opening: play center or strong response
+            if (emptyCells.length >= totalCells - 1) {
+                if (!board[center][center]) return { row: center, col: center };
+                const counters = [
+                    { row: center + 1, col: center - 1 },
+                    { row: center - 1, col: center + 1 },
+                    { row: center + 1, col: center },
+                    { row: center, col: center + 1 }
+                ];
+                for (const m of counters) {
+                    if (m.row >= 0 && m.row < BOARD_SIZE && m.col >= 0 && m.col < BOARD_SIZE && !board[m.row][m.col]) {
+                        return m;
+                    }
+                }
+            }
+
+            // Calculate current resistances
+            const blueRes = calculateResistance('blue', board);
+            const redRes = calculateResistance('red', board);
+
+            // Check for immediate wins
+            for (const { r, c } of emptyCells) {
+                board[r][c] = 'blue';
+                if (calculateResistance('blue', board) === 0) {
+                    board[r][c] = null;
+                    return { row: r, col: c };
+                }
+                board[r][c] = null;
+            }
+
+            // Check for immediate blocks
+            for (const { r, c } of emptyCells) {
+                board[r][c] = 'red';
+                if (calculateResistance('red', board) === 0) {
+                    board[r][c] = null;
+                    return { row: r, col: c };
+                }
+                board[r][c] = null;
+            }
+
+            // BRIDGE DEFENSE: If opponent intruded on our bridge, complete the connection
+            const intrusions = findBridgeIntrusions('blue', board, lastOpponentMove);
+            if (intrusions.length > 0) {
+                const response = intrusions[0];
+                if (!board[response.r][response.c]) {
+                    return { row: response.r, col: response.c };
+                }
+            }
+
+            // BRIDGE ATTACK: Find and evaluate opponent's bridges we should break
+            const opponentBridges = findOpponentBridges('red', board);
+            const bridgeCellImportance = new Map();
+
+            for (const bridge of opponentBridges) {
+                const importance = evaluateBridgeImportance(bridge, 'red', board);
+                // Both cells of the bridge are candidates for breaking it
+                const key1 = `${bridge.cell1.r},${bridge.cell1.c}`;
+                const key2 = `${bridge.cell2.r},${bridge.cell2.c}`;
+                bridgeCellImportance.set(key1, Math.max(bridgeCellImportance.get(key1) || 0, importance));
+                bridgeCellImportance.set(key2, Math.max(bridgeCellImportance.get(key2) || 0, importance));
+            }
+
+            // THREAT DETECTION: Find opponent's most dangerous potential moves
+            const threats = [];
+            for (const { r, c } of emptyCells) {
+                const threat = evaluateThreat(r, c, board);
+                if (threat > 0) {
+                    threats.push({ r, c, threat });
+                }
+            }
+            threats.sort((a, b) => b.threat - a.threat);
+
+            // Determine defensive urgency based on relative position
+            // If opponent is ahead (lower resistance), we need to defend more
+            const defensiveUrgency = Math.max(0, blueRes - redRes);
+            const needsDefense = redRes <= blueRes || redRes <= 3;
+
+            // Find cells that are part of our secure bridges
+            const ourSecureBridgeCells = new Set();
+            for (const { r, c } of emptyCells) {
+                const bridgeInfo = isSecureBridgeCell(r, c, 'blue', board);
+                if (bridgeInfo.isSecure) {
+                    ourSecureBridgeCells.add(`${r},${c}`);
+                }
+            }
+
+            // Find critical defensive positions
+            const criticalDefense = findCriticalDefensiveCells('blue', board);
+            const criticalSet = new Map();
+            for (const cell of criticalDefense) {
+                criticalSet.set(`${cell.r},${cell.c}`, cell.urgency);
+            }
+
+            // Get dual distances for move prioritization
+            const blueDual = calculateDualDistanceWithBridges('blue', board);
+            const redDual = calculateDualDistanceWithBridges('red', board);
+
+            // Score and sort moves
+            const scoredMoves = [];
+            for (const { r, c } of emptyCells) {
+                const cellKey = `${r},${c}`;
+                const isOurBridge = ourSecureBridgeCells.has(cellKey);
+
+                // Offensive value - how much this improves our position
+                const bluePathDist = blueDual.fromStart[r][c] + blueDual.fromEnd[r][c];
+                const onBluePath = bluePathDist <= blueRes + 2;
+
+                board[r][c] = 'blue';
+                const newBlueRes = calculateResistance('blue', board);
+                board[r][c] = 'red';
+                const newRedRes = calculateResistance('red', board);
+                board[r][c] = null;
+
+                const offensiveGain = blueRes - newBlueRes;
+                const defensiveGain = newRedRes - redRes;
+
+                // How much does opponent want this cell?
+                const redPathDist = redDual.fromStart[r][c] + redDual.fromEnd[r][c];
+                const onRedPath = redPathDist <= redRes + 2;
+                const criticalUrgency = criticalSet.get(cellKey) || 0;
+
+                // Find this cell's threat level from our threat analysis
+                const threatInfo = threats.find(t => t.r === r && t.c === c);
+                const threatLevel = threatInfo ? threatInfo.threat : 0;
+
+                // BRIDGE BREAKING BONUS - prioritize breaking opponent's bridges
+                const bridgeBreakImportance = bridgeCellImportance.get(cellKey) || 0;
+                const bridgeBreakBonus = bridgeBreakImportance * 100; // High value for breaking critical bridges
+
+                // Bridge creation bonuses
+                let bridgeBonus = 0;
+                let blockBridgeBonus = 0;
+                for (const pattern of bridgePatterns) {
+                    const pr = r + pattern.dx, pc = c + pattern.dy;
+                    if (pr >= 0 && pr < BOARD_SIZE && pc >= 0 && pc < BOARD_SIZE) {
+                        const [b1, b2] = pattern.bridges;
+                        const b1r = r + b1[0], b1c = c + b1[1];
+                        const b2r = r + b2[0], b2c = c + b2[1];
+                        if (b1r >= 0 && b1r < BOARD_SIZE && b1c >= 0 && b1c < BOARD_SIZE &&
+                            b2r >= 0 && b2r < BOARD_SIZE && b2c >= 0 && b2c < BOARD_SIZE &&
+                            !board[b1r][b1c] && !board[b2r][b2c]) {
+                            if (board[pr][pc] === 'blue') bridgeBonus += 40;
+                            if (board[pr][pc] === 'red') blockBridgeBonus += 35;
+                        }
+                    }
+                }
+
+                // Penalize playing in our own secure bridges
+                const bridgePenalty = isOurBridge ? -80 : 0;
+
+                // Calculate priority with defense awareness
+                // Base offensive score
+                let priority = offensiveGain * 100 + (onBluePath ? 50 : 0) + bridgeBonus + bridgePenalty;
+
+                // Defensive score - weighted more heavily when we're behind or opponent is close
+                const defenseWeight = needsDefense ? 1.5 : 1.0;
+                priority += (defensiveGain * 80 + threatLevel * 120 + criticalUrgency * 60 +
+                            (onRedPath ? 70 : 0) + blockBridgeBonus + bridgeBreakBonus) * defenseWeight;
+
+                // Extra bonus for cells that are good both offensively AND defensively
+                if (offensiveGain > 0 && defensiveGain > 0) {
+                    priority += 50;
+                }
+
+                // Extra bonus for breaking opponent bridges that are on their critical path
+                if (bridgeBreakImportance >= 2) {
+                    priority += 80;
+                }
+
+                scoredMoves.push({ r, c, priority, isOurBridge, threatLevel, offensiveGain, defensiveGain, bridgeBreak: bridgeBreakImportance });
+            }
+
+            scoredMoves.sort((a, b) => b.priority - a.priority);
+
+            // If opponent has a serious threat, make sure we consider blocking it
+            if (threats.length > 0 && threats[0].threat >= 1) {
+                const topThreat = threats[0];
+                const threatInCandidates = scoredMoves.slice(0, 10).some(
+                    m => m.r === topThreat.r && m.c === topThreat.c
+                );
+                if (!threatInCandidates) {
+                    const threatMove = scoredMoves.find(m => m.r === topThreat.r && m.c === topThreat.c);
+                    if (threatMove) {
+                        scoredMoves.splice(scoredMoves.indexOf(threatMove), 1);
+                        scoredMoves.unshift(threatMove);
+                    }
+                }
+            }
+
+            // CRITICAL: If opponent has important bridges, make sure we consider breaking them
+            if (opponentBridges.length > 0) {
+                // Find the most important bridge to break
+                let mostImportantBridge = null;
+                let maxImportance = 0;
+                for (const bridge of opponentBridges) {
+                    const importance = evaluateBridgeImportance(bridge, 'red', board);
+                    if (importance > maxImportance) {
+                        maxImportance = importance;
+                        mostImportantBridge = bridge;
+                    }
+                }
+
+                // If there's an important bridge (on or near critical path), ensure we consider breaking it
+                if (mostImportantBridge && maxImportance >= 2) {
+                    const breakCells = [mostImportantBridge.cell1, mostImportantBridge.cell2];
+                    for (const cell of breakCells) {
+                        const inCandidates = scoredMoves.slice(0, 10).some(
+                            m => m.r === cell.r && m.c === cell.c
+                        );
+                        if (!inCandidates) {
+                            const breakMove = scoredMoves.find(m => m.r === cell.r && m.c === cell.c);
+                            if (breakMove) {
+                                scoredMoves.splice(scoredMoves.indexOf(breakMove), 1);
+                                scoredMoves.splice(2, 0, breakMove); // Insert near top
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Filter out our secure bridge cells for minimax candidates
+            let candidates = scoredMoves.filter(m => !m.isOurBridge).slice(0, Math.min(10, scoredMoves.length));
+            if (candidates.length < 3) {
+                candidates = scoredMoves.slice(0, Math.min(10, scoredMoves.length));
+            }
+
+            let bestMove = candidates[0];
+            let bestScore = -Infinity;
+
+            for (const { r, c } of candidates) {
+                board[r][c] = 'blue';
+                const score = minimax(board, 3, -Infinity, Infinity, false, { r, c });
+                board[r][c] = null;
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMove = { r, c };
+                }
+            }
+
+            return { row: bestMove.r, col: bestMove.c };
         }
 
         function getNeighbors(row, col) {
@@ -758,7 +1485,9 @@
             overlay.classList.remove('show');
 
             gameOver = false;
+            aiThinking = false;
             currentPlayer = 'red';
+            lastOpponentMove = null;
             initBoard();
             renderBoard();
             updateTurnIndicator();
