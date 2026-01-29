@@ -23,18 +23,24 @@
         }
 
         h1 {
-            margin-bottom: 10px;
-            font-size: 2.5rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            margin: 0;
+            font-size: 10rem;
+            font-weight: 900;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.5);
         }
 
         #top-bar {
             width: 100%;
             max-width: 900px;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
+            gap: 30px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
         #game-info {
@@ -42,6 +48,90 @@
             display: flex;
             align-items: center;
             gap: 15px;
+        }
+
+        .timer-container {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .player-timer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            font-weight: bold;
+            min-width: 100px;
+            justify-content: center;
+        }
+
+        .player-timer.red-timer {
+            border: 2px solid #c0392b;
+        }
+
+        .player-timer.blue-timer {
+            border: 2px solid #2980b9;
+        }
+
+        .player-timer.active {
+            background: rgba(255,255,255,0.2);
+            box-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        .player-timer.red-timer.active {
+            background: rgba(192, 57, 43, 0.3);
+        }
+
+        .player-timer.blue-timer.active {
+            background: rgba(41, 128, 185, 0.3);
+        }
+
+        .player-timer.low-time {
+            animation: pulse-warning 0.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-warning {
+            0%, 100% { background: rgba(231, 76, 60, 0.3); }
+            50% { background: rgba(231, 76, 60, 0.6); }
+        }
+
+        .timer-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .timer-dot.red { background: #e74c3c; }
+        .timer-dot.blue { background: #3498db; }
+
+        #time-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #time-select {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        #time-select option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+
+        .timers-hidden .timer-container {
+            display: none;
         }
 
         .player-indicator {
@@ -147,6 +237,7 @@
         #winner-banner h2 {
             font-size: 2rem;
             margin-bottom: 20px;
+            white-space: pre-line;
         }
 
         #winner-banner.red-wins h2 {
@@ -160,7 +251,7 @@
         #controls {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 25px;
         }
 
         #mode-toggle {
@@ -248,7 +339,9 @@
             }
 
             h1 {
-                font-size: 2rem;
+                font-size: 7rem;
+                bottom: 15px;
+                left: 15px;
             }
 
             #top-bar {
@@ -261,8 +354,20 @@
                 gap: 10px;
             }
 
+            .timer-container {
+                gap: 15px;
+            }
+
+            .player-timer {
+                padding: 6px 10px;
+                font-size: 1rem;
+                min-width: 80px;
+            }
+
             #controls {
                 gap: 10px;
+                flex-wrap: wrap;
+                justify-content: center;
             }
 
             .player-indicator {
@@ -308,7 +413,7 @@
 
         @media (max-width: 500px) {
             h1 {
-                font-size: 1.6rem;
+                font-size: 4rem;
             }
 
             #game-info {
@@ -334,10 +439,30 @@
             <span class="player-indicator red" id="current-player"></span>
             <span id="player-name">Red</span>
         </div>
+        <div class="timer-container" id="timer-container">
+            <div class="player-timer red-timer" id="red-timer">
+                <span class="timer-dot red"></span>
+                <span id="red-time">5:00</span>
+            </div>
+            <div class="player-timer blue-timer" id="blue-timer">
+                <span class="timer-dot blue"></span>
+                <span id="blue-time">5:00</span>
+            </div>
+        </div>
         <div id="controls">
             <div id="mode-toggle">
-                <button id="btn-1p" class="mode-btn" onclick="setMode(1)">1 Player</button>
-                <button id="btn-2p" class="mode-btn active" onclick="setMode(2)">2 Players</button>
+                <button id="btn-1p" class="mode-btn active" onclick="setMode(1)">1 Player</button>
+                <button id="btn-2p" class="mode-btn" onclick="setMode(2)">2 Players</button>
+            </div>
+            <div id="time-control">
+                <select id="time-select" onchange="setTimeControl(this.value)">
+                    <option value="0.1666">10 sec</option>
+                    <option value="0.333">20 sec</option>
+                    <option value="0.5">30 sec</option>
+                    <option value="1">1 min</option>
+                    <option value="5" selected>5 min</option>
+                    <option value="0">Unlimited</option>
+                </select>
             </div>
             <button onclick="resetGame()">New Game</button>
         </div>
@@ -408,10 +533,103 @@
 
         let board = [];
         let currentPlayer = 'red';
-        let gameMode = 2; // 1 = vs AI, 2 = vs human
+        let gameMode = 1; // 1 = vs AI, 2 = vs human
         let aiThinking = false;
         let lastOpponentMove = null;
         let gameOver = false;
+        let gameStarted = false;
+
+        // Timer state
+        let timeControl = 5; // minutes (0 = unlimited)
+        let redTimeMs = 5 * 60 * 1000;
+        let blueTimeMs = 5 * 60 * 1000;
+        let timerInterval = null;
+        let lastTickTime = null;
+
+        function formatTime(ms) {
+            if (ms <= 0) return '0:00';
+            const totalSeconds = Math.ceil(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function updateTimerDisplay() {
+            document.getElementById('red-time').textContent = formatTime(redTimeMs);
+            document.getElementById('blue-time').textContent = formatTime(blueTimeMs);
+
+            const redTimerEl = document.getElementById('red-timer');
+            const blueTimerEl = document.getElementById('blue-timer');
+
+            // Update active state
+            redTimerEl.classList.toggle('active', currentPlayer === 'red' && !gameOver);
+            blueTimerEl.classList.toggle('active', currentPlayer === 'blue' && !gameOver);
+
+            // Update low time warning (under 30 seconds)
+            redTimerEl.classList.toggle('low-time', redTimeMs <= 30000 && redTimeMs > 0 && currentPlayer === 'red');
+            blueTimerEl.classList.toggle('low-time', blueTimeMs <= 30000 && blueTimeMs > 0 && currentPlayer === 'blue');
+        }
+
+        function startTimer() {
+            if (timeControl === 0 || gameOver) return;
+            stopTimer();
+            lastTickTime = Date.now();
+            timerInterval = setInterval(tickTimer, 100);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function tickTimer() {
+            if (gameOver || aiThinking) return;
+
+            const now = Date.now();
+            const elapsed = now - lastTickTime;
+            lastTickTime = now;
+
+            if (currentPlayer === 'red') {
+                redTimeMs = Math.max(0, redTimeMs - elapsed);
+                if (redTimeMs === 0) {
+                    handleTimeout('red');
+                    return;
+                }
+            } else {
+                blueTimeMs = Math.max(0, blueTimeMs - elapsed);
+                if (blueTimeMs === 0) {
+                    handleTimeout('blue');
+                    return;
+                }
+            }
+
+            updateTimerDisplay();
+        }
+
+        function handleTimeout(player) {
+            stopTimer();
+            gameOver = true;
+            const winner = player === 'red' ? 'blue' : 'red';
+            showWinner(winner, true);
+        }
+
+        function setTimeControl(minutes) {
+            timeControl = parseFloat(minutes);
+            resetGame();
+        }
+
+        function initTimers() {
+            if (timeControl === 0) {
+                document.getElementById('timer-container').style.display = 'none';
+            } else {
+                document.getElementById('timer-container').style.display = 'flex';
+                redTimeMs = timeControl * 60 * 1000;
+                blueTimeMs = timeControl * 60 * 1000;
+            }
+            updateTimerDisplay();
+        }
 
         function updateHexDimensions() {
             HEX_SIZE = calculateHexSize();
@@ -708,6 +926,13 @@
 
         function makeMove(row, col) {
             const wasRed = currentPlayer === 'red';
+
+            // Start timer on first move
+            if (!gameStarted) {
+                gameStarted = true;
+                startTimer();
+            }
+
             board[row][col] = currentPlayer;
             renderBoard();
 
@@ -724,6 +949,12 @@
 
             currentPlayer = currentPlayer === 'red' ? 'blue' : 'red';
             updateTurnIndicator();
+            updateTimerDisplay();
+
+            // Restart timer for next player
+            if (timeControl > 0 && !gameOver) {
+                lastTickTime = Date.now();
+            }
 
             // Trigger AI move in 1-player mode
             if (gameMode === 1 && currentPlayer === 'blue' && !gameOver) {
@@ -1465,13 +1696,20 @@
             return false;
         }
 
-        function showWinner(player) {
+        function showWinner(player, byTimeout = false) {
+            stopTimer();
             const banner = document.getElementById('winner-banner');
             const overlay = document.getElementById('overlay');
             const text = document.getElementById('winner-text');
 
             banner.className = player === 'red' ? 'red-wins' : 'blue-wins';
-            text.textContent = `${player.charAt(0).toUpperCase() + player.slice(1)} Wins!`;
+            const playerName = player.charAt(0).toUpperCase() + player.slice(1);
+            if (byTimeout) {
+                const loser = player === 'red' ? 'Blue' : 'Red';
+                text.textContent = `${playerName} Wins!\n(${loser} ran out of time)`;
+            } else {
+                text.textContent = `${playerName} Wins!`;
+            }
 
             banner.style.display = 'block';
             overlay.classList.add('show');
@@ -1484,13 +1722,16 @@
             banner.style.display = 'none';
             overlay.classList.remove('show');
 
+            stopTimer();
             gameOver = false;
+            gameStarted = false;
             aiThinking = false;
             currentPlayer = 'red';
             lastOpponentMove = null;
             initBoard();
             renderBoard();
             updateTurnIndicator();
+            initTimers();
         }
 
         // Handle window resize
@@ -1507,6 +1748,7 @@
         initBoard();
         renderBoard();
         updateTurnIndicator();
+        initTimers();
     </script>
 </body>
 </html>
