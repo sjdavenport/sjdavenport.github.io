@@ -192,7 +192,17 @@ def parse_post(path):
         text = text[fm.end():]
 
     html = markdown.markdown(text, extensions=['fenced_code', 'tables'])
-    return {'title': title, 'date': date, 'slug': slug, 'html': html}
+
+    excerpt = ''
+    m = re.search(r'<p>(.*?)</p>', html, re.DOTALL)
+    if m:
+        excerpt = re.sub(r'<[^>]+>', '', m.group(1)).replace('\n', ' ')
+        words = excerpt.split()
+        if len(words) > 40:
+            excerpt = ' '.join(words[:40]) + ' &hellip;'
+
+    return {'title': title, 'date': date, 'slug': slug, 'html': html,
+            'excerpt': excerpt}
 
 
 def build_post_page(post):
@@ -223,12 +233,15 @@ def build_index(posts):
     items = ''
     for post in posts:
         items += f"""
-<div class="pub-list-item" style="margin-bottom: 1rem">
-<i class="fa fa-pencil pub-icon" aria-hidden="true"></i>
-<a href="/blog/{post['slug']}/"><span>{post['title']}</span></a>
-<div class="talk-metadata">
+<div style="margin-bottom: 3rem">
+<h3 class="article-title" style="margin-top: 0">
+<a href="/blog/{post['slug']}/">{post['title']}</a>
+</h3>
+<div class="article-metadata">
 {post['date'].strftime('%B %-d, %Y')}
 </div>
+<p>{post['excerpt']}</p>
+<a href="/blog/{post['slug']}/">Read more &raquo;</a>
 </div>
 """
     page = HEAD.format(title='Blog', url='/blog/')
