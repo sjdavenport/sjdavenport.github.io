@@ -1,4 +1,31 @@
-<!DOCTYPE html>
+"""
+Build the blog: converts markdown posts in blog/posts/ into HTML pages
+and regenerates blog/index.html.
+
+Usage: python3 build_blog.py   (requires: uv pip install markdown)
+
+Each post is a markdown file in blog/posts/ named YYYY-MM-DD-slug.md with
+front matter:
+
+    ---
+    title: My Post Title
+    ---
+
+    Post content in markdown...
+
+The date is taken from the filename. Output goes to blog/<slug>/index.html
+and the post list at blog/index.html is rebuilt (newest first).
+"""
+import os
+import re
+from datetime import datetime
+
+import markdown
+
+BLOG_DIR = os.path.dirname(os.path.abspath(__file__))
+POSTS_DIR = os.path.join(BLOG_DIR, 'posts')
+
+HEAD = """<!DOCTYPE html>
 <html lang="en-us">
 <head>
 
@@ -24,9 +51,9 @@
 <link rel="icon" type="image/png" href="/img/icon.png">
 <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
 
-<link rel="canonical" href="https://sjdavenport.github.io/blog/">
+<link rel="canonical" href="https://sjdavenport.github.io{url}">
 
-<title>Blog | Samuel Davenport</title>
+<title>{title} | Samuel Davenport</title>
 
 </head>
 <body id="top">
@@ -95,24 +122,9 @@ data-target=".navbar-collapse" aria-expanded="false">
 </div>
 </nav>
 
+"""
 
-<div class="container">
-<div class="row">
-<div class="col-md-12">
-<h1>Blog</h1>
-
-<div class="pub-list-item" style="margin-bottom: 1rem">
-<i class="fa fa-pencil pub-icon" aria-hidden="true"></i>
-<a href="/blog/welcome/"><span>Welcome to the blog</span></a>
-<div class="talk-metadata">
-September 8, 2026
-</div>
-</div>
-
-</div>
-</div>
-</div>
-
+FOOT = """
 <footer class="site-footer">
 <div class="container">
 <p class="powered-by">
@@ -143,3 +155,110 @@ Thanks to Jeremias Knoblauch at the University of Warwick for providing this web
 
 </body>
 </html>
+"""
+
+COMMENTS = """
+<hr>
+<h3>Comments</h3>
+<script src="https://utteranc.es/client.js"
+        repo="sjdavenport/sjdavenport.github.io"
+        issue-term="pathname"
+        label="blog-comment"
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+</script>
+"""
+
+
+def parse_post(path):
+    """Return a dict with title, date, slug and html content for one post."""
+    fname = os.path.basename(path)
+    m = re.match(r'(\d{4}-\d{2}-\d{2})-(.+)\.md$', fname)
+    if not m:
+        raise ValueError(f'post filename must be YYYY-MM-DD-slug.md, got {fname}')
+    date = datetime.strptime(m.group(1), '%Y-%m-%d')
+    slug = m.group(2)
+
+    with open(path) as f:
+        text = f.read()
+
+    title = slug.replace('-', ' ').title()
+    fm = re.match(r'---\s*\n(.*?)\n---\s*\n', text, re.DOTALL)
+    if fm:
+        for line in fm.group(1).splitlines():
+            if line.startswith('title:'):
+                title = line.split(':', 1)[1].strip()
+        text = text[fm.end():]
+
+    html = markdown.markdown(text, extensions=['fenced_code', 'tables'])
+    return {'title': title, 'date': date, 'slug': slug, 'html': html}
+
+
+def build_post_page(post):
+    url = f'/blog/{post["slug"]}/'
+    page = HEAD.format(title=post['title'], url=url)
+    page += f"""
+<div class="container">
+<div class="row">
+<div class="col-md-12">
+<h1>{post['title']}</h1>
+<p class="text-muted">{post['date'].strftime('%B %-d, %Y')}</p>
+
+{post['html']}
+
+{COMMENTS}
+</div>
+</div>
+</div>
+"""
+    page += FOOT
+    outdir = os.path.join(BLOG_DIR, post['slug'])
+    os.makedirs(outdir, exist_ok=True)
+    with open(os.path.join(outdir, 'index.html'), 'w') as f:
+        f.write(page)
+
+
+def build_index(posts):
+    items = ''
+    for post in posts:
+        items += f"""
+<div class="pub-list-item" style="margin-bottom: 1rem">
+<i class="fa fa-pencil pub-icon" aria-hidden="true"></i>
+<a href="/blog/{post['slug']}/"><span>{post['title']}</span></a>
+<div class="talk-metadata">
+{post['date'].strftime('%B %-d, %Y')}
+</div>
+</div>
+"""
+    page = HEAD.format(title='Blog', url='/blog/')
+    page += f"""
+<div class="container">
+<div class="row">
+<div class="col-md-12">
+<h1>Blog</h1>
+{items}
+</div>
+</div>
+</div>
+"""
+    page += FOOT
+    with open(os.path.join(BLOG_DIR, 'index.html'), 'w') as f:
+        f.write(page)
+
+
+def main():
+    posts = []
+    for fname in sorted(os.listdir(POSTS_DIR)):
+        if fname.endswith('.md'):
+            posts.append(parse_post(os.path.join(POSTS_DIR, fname)))
+    posts.sort(key=lambda p: p['date'], reverse=True)
+
+    for post in posts:
+        build_post_page(post)
+    build_index(posts)
+    print(f'built {len(posts)} post(s) and blog/index.html')
+
+
+if __name__ == '__main__':
+    main()
