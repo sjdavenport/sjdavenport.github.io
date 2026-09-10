@@ -264,5 +264,72 @@
       }
     ],
     "updatedAt": "2026-09-09T15:25:00.826Z"
+  },
+  {
+    "sessionId": "9e1f933e-2002-40ef-9ff7-54e29c871ee6",
+    "timestamp": "2026-09-10T13:26:28.543Z",
+    "messages": [
+      {
+        "role": "user",
+        "content": "when I share a link to sjdavenport.github.io on twitter the tag says that I'm a Phd student. I guess because of my education. But I'm obviously not",
+        "timestamp": "2026-09-10T13:26:07.450Z"
+      },
+      {
+        "role": "assistant",
+        "content": "I'll look at the site's metadata tags.",
+        "timestamp": "2026-09-10T13:26:09.002Z"
+      },
+      {
+        "role": "user",
+        "content": "[Request interrupted by user]",
+        "timestamp": "2026-09-10T13:26:10.142Z"
+      },
+      {
+        "role": "user",
+        "content": "when I share a link to sjdavenport.github.io on twitter the tag says that I'm a Phd student. I guess because of my education. But I'm obviously not any more. thoughts?",
+        "timestamp": "2026-09-10T13:26:14.190Z"
+      },
+      {
+        "role": "assistant",
+        "content": "I'll check what metadata the site actually exposes before guessing.",
+        "timestamp": "2026-09-10T13:26:15.562Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Zsh glob issue — quoting the patterns.",
+        "timestamp": "2026-09-10T13:26:19.713Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Confirmed — it's not Twitter inferring anything from your education section. It's hardcoded stale metadata: `index.html:11` and `index.html:40` literally say \"PhD Student on the Oxford-Warwick Statistics Programme\", left over from a Hugo/Academic theme build circa 2018. Twitter just renders the `og:description`. The same string is in ~15 other pages (`404.html`, `research/`, `talks/`, `publication_types/`), so anything you share from the site says it.\n\nWorth noting: `research/stbocpdms/index.html` has Jeremias Knoblauch's name, URL, and site_name in its meta tags — another leftover from the theme's example content, unrelated but wrong in the same way.\n\nWhat should it say instead? Tell me the line (something like \"Statistician at [institution]\" or just \"Statistician working on neuroimaging and multiple testing\") and I'll update the description/og:description across the site. Or I can do `index.html` and `404.html` only, since those are the ones people actually share.",
+        "timestamp": "2026-09-10T13:26:28.165Z"
+      },
+      {
+        "role": "user",
+        "content": "Statistician working on multiple testing would be good",
+        "timestamp": "2026-09-10T13:27:24.577Z"
+      },
+      {
+        "role": "assistant",
+        "content": "I'll replace the stale string across the site.",
+        "timestamp": "2026-09-10T13:27:26.242Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Let me confirm these strings only appear in meta tags, not in visible body text, before doing a blanket replace.",
+        "timestamp": "2026-09-10T13:27:29.192Z"
+      },
+      {
+        "role": "assistant",
+        "content": "All occurrences are meta tags only. Replacing all three variants across the 18 files.",
+        "timestamp": "2026-09-10T13:27:32.361Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Done — 18 files updated, 36 meta tags. The one remaining \"Oxford-Warwick\" hit is `index.html:171`, your education entry (\"PhD in Statistics, Oxford-Warwick Statistics Programme, 2016-2020\"), which is a factual credential and correct as-is, so I left it.\n\nTwo things I didn't touch, since they're outside what you asked:\n\n- `research/stbocpdms/index.html` still carries Jeremias Knoblauch's `og:site_name`, `og:url`, `og:title`, and `og:image` — so sharing that one page attributes it to him. Say the word and I'll fix it.\n- Twitter caches Open Graph data, so the old text may persist on already-shared links for a while. New shares after this deploys should pick up the new string.",
+        "timestamp": "2026-09-10T13:27:41.131Z"
+      }
+    ],
+    "updatedAt": "2026-09-10T13:27:41.507Z"
   }
 ]
